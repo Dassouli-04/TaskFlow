@@ -3,6 +3,7 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
+const protect = require("./middleware/authMiddleware");
 
 dotenv.config();
 
@@ -18,6 +19,12 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+
+app.get("/api/auth/me", protect, (req, res) => {
+  res.json({
+    user: req.user
+  });
+});
 
 const PORT = process.env.PORT || 5000;
 
