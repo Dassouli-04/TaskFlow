@@ -160,6 +160,4 @@ GET /api/projects?page=1&limit=10
 - `main`: stable branch
 - `develop`: integration branch
 - `feature/authentification`: authentication feature branch
-
-
-
+- `feature/projects`: project management feature branch
