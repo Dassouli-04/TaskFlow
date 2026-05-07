@@ -74,6 +74,7 @@ TaskFlow/
     register.html
     login.html
     dashboard.html
+    projects.html
 
   docker-compose.yml
   .env.example
@@ -112,10 +113,53 @@ Implemented by Mohammad Dassouli.
 - Logout removes the token and redirects to the login page
 - Session restoration after page reload
 
+## Auth API Routes
+
+| Method | Route                | Description                        |
+| ------ | -------------------- | ---------------------------------- |
+| POST   | `/api/auth/register` | Register a new user                |
+| POST   | `/api/auth/login`    | Login user and return JWT token    |
+| GET    | `/api/auth/me`       | Get authenticated user information |
+
+
+
+## Feature 2 — Project Management
+
+Implemented by Mohammad Dassouli.
+
+### Completed
+
+- Project model with owner reference
+- Project CRUD API routes
+- Protected project routes using authentication middleware
+- Project listing with pagination
+- Owner-only update and delete permissions
+- Cascade delete for related tasks on project removal
+- Frontend projects page with create, edit, delete, and pagination
+
+
+## Project API routes
+
+| Method | Route | Description |
+|---|---|---|
+| GET | /api/projects | Get authenticated user's projects with pagination |
+| POST | /api/projects | Create a new project |
+| GET | /api/projects/:id | Get one project |
+| PUT | /api/projects/:id | Update project |
+| DELETE | /api/projects/:id | Delete project and related tasks |
+
+## Project pagination
+
+```http
+GET /api/projects?page=1&limit=10 
+```
+
 
 ## Git Workflow
 
 - `main`: stable branch
 - `develop`: integration branch
 - `feature/authentification`: authentication feature branch
+
+
 
