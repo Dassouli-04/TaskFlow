@@ -58,16 +58,12 @@ const loadProjects = async () => {
         <p><strong>Owner:</strong> ${project.owner?.fullName || "Unknown"}</p>
 
         <div class="project-actions">
-          <a href="tasks.html?projectId=${project._id}">
-            <button type="button">📋 Tâches</button>
-          </a>
-
           <button onclick="editProject('${project._id}', '${escapeText(project.title)}', '${escapeText(project.description)}', '${project.deadline || ""}', '${project.status}')">
-            Modifier
+            Edit
           </button>
 
           <button onclick="deleteProject('${project._id}')">
-            Supprimer
+            Delete
           </button>
         </div>
       </div>
