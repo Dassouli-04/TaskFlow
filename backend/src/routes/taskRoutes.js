@@ -7,7 +7,7 @@ const {
   updateTask,
   deleteTask,
   updateTaskStatus
-} = require("../controllers/taskController");
+} = require("../controllers/taskcontroller");
 
 const router = express.Router();
 
@@ -23,3 +23,4 @@ router.route("/:id/status")
   .patch(protect, updateTaskStatus);
 
 module.exports = router;
+/// 4

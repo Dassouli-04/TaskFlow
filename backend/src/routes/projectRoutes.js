@@ -9,7 +9,7 @@ const {
   deleteProject
 } = require("../controllers/projectController");
 
-const { getTasksByProject } = require("../controllers/taskController");
+const { getTasksByProject } = require("../controllers/taskcontroller");
 
 const router = express.Router();
 
@@ -26,3 +26,6 @@ router.route("/:id/tasks")
   .get(protect, getTasksByProject);
 
 module.exports = router;
+
+////// 4
+
