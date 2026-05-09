@@ -21,6 +21,47 @@
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script src="js/api.js"></script>
   <script src="js/auth.js"></script>
+  <script>
+  async function loadDashboard() {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.get('/api/dashboard', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    
+    const data = response.data;
+    
+    document.getElementById('activeProjects').textContent = data.activeProjects;
+    document.getElementById('totalAssigned').textContent = data.totalAssigned;
+    document.getElementById('completedTasks').textContent = data.completedTasks;
+    document.getElementById('lateTasks').textContent = data.lateTasks;
+    
+    displayPendingTasks(data.pendingTasks);
+  } catch (error) {
+    console.error('Error loading dashboard:', error);
+  }
+}
+
+function displayPendingTasks(tasks) {
+  const container = document.getElementById('pendingTasksList');
+  if (!container) return;
   
+  if (tasks.length === 0) {
+    container.innerHTML = '<p>Aucune tâche en cours.</p>';
+    return;
+  }
+  
+  container.innerHTML = tasks.map(task => `
+    <div class="task-item">
+      <strong>${escapeHtml(task.title)}</strong>
+      <span class="priority ${task.priority}">${task.priority}</span>
+      <span class="status">${task.status}</span>
+      ${task.deadline ? `<small>Deadline: ${new Date(task.deadline).toLocaleDateString()}</small>` : ''}
+    </div>
+  `).join('');
+}
+
+document.addEventListener('DOMContentLoaded', loadDashboard);
+  </script>
 </body>
 </html>

@@ -1,6 +1,7 @@
 const Task = require("../models/Task");
 const Project = require("../models/Project");
-
+// 4
+const { logActivity } = require("../middleware/logActivity"); 
 // Middleware de validation des champs enum
 const validateTaskFields = (body) => {
   const validPriorities = ["basse", "moyenne", "haute"];
@@ -85,6 +86,7 @@ const createTask = async (req, res) => {
     });
 
     const populated = await task.populate("assignedTo", "fullName email");
+    await logActivity(task.project, req.user._id, 'create_task', `Création tâche: ${task.title}`);
 
     res.status(201).json(populated);
   } catch (error) {
@@ -123,6 +125,7 @@ const updateTask = async (req, res) => {
 
     const project = await Project.findById(task.project);
     const isOwner = project.owner.toString() === req.user._id.toString();
+    
     const isMember = project.members.some(
       (m) => m.toString() === req.user._id.toString()
     );
@@ -142,6 +145,8 @@ const updateTask = async (req, res) => {
 
     await task.save();
     await task.populate("assignedTo", "fullName email");
+    await logActivity(task.project, req.user._id, 'update_status', `Statut changé à ${status}`);
+
 
     res.json(task);
   } catch (error) {

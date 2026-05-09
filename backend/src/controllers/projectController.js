@@ -209,14 +209,119 @@ const getProjectMembers = async (req, res) => {
     res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
-/////
+/////4
+const getTasksByProject = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const { 
+      page = 1, 
+      limit = 10, 
+      status, 
+      priority, 
+      assignedTo,
+      search 
+    } = req.query;
+
+    // Construire le filtre
+    const filter = { project: projectId };
+    if (status) filter.status = status;
+    if (priority) filter.priority = priority;
+    if (assignedTo) filter.assignedTo = assignedTo;
+    if (search) {
+      filter.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    const skip = (page - 1) * limit;
+    const tasks = await Task.find(filter)
+      .populate('assignedTo', 'name email')
+      .skip(skip)
+      .limit(parseInt(limit))
+      .sort({ createdAt: -1 });
+
+    const total = await Task.countDocuments(filter);
+
+    res.json({
+      data: tasks,
+      total,
+      page: parseInt(page),
+      totalPages: Math.ceil(total / limit)
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+/////////////////////
+// Ajouter un membre par email
+const addMemberByEmail = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const projectId = req.params.id;
+    
+    const project = await Project.findById(projectId);
+    if (!project) {
+      return res.status(404).json({ message: 'Projet non trouvé' });
+    }
+    
+    // Seul le créateur peut ajouter des membres
+    if (project.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Seul le créateur peut ajouter des membres' });
+    }
+    
+    const userToAdd = await User.findOne({ email });
+    if (!userToAdd) {
+      return res.status(404).json({ message: 'Utilisateur non trouvé avec cet email' });
+    }
+    
+    // Vérifier si déjà membre
+    if (project.members.includes(userToAdd._id) || project.owner.toString() === userToAdd._id.toString()) {
+      return res.status(400).json({ message: 'Cet utilisateur est déjà membre ou créateur' });
+    }
+    
+    project.members.push(userToAdd._id);
+    await project.save();
+    
+    res.json({ message: 'Membre ajouté avec succès', member: userToAdd });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Retirer un membre
+const removeMember = async (req, res) => {
+  try {
+    const { memberId } = req.params;
+    const projectId = req.params.id;
+    
+    const project = await Project.findById(projectId);
+    if (!project) {
+      return res.status(404).json({ message: 'Projet non trouvé' });
+    }
+    
+    if (project.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Seul le créateur peut retirer des membres' });
+    }
+    
+    project.members = project.members.filter(m => m.toString() !== memberId);
+    await project.save();
+    
+    res.json({ message: 'Membre retiré avec succès' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+//////////////////
 module.exports = {
   createProject,
   getProjects,
   getProjectById,
   updateProject,
   deleteProject,
-  getProjectMembers
+  getProjectMembers,
+  getTasksByProject,
+  addMemberByEmail
 };
 
 

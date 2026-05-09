@@ -28,4 +28,6 @@ router.route("/:id/tasks")
 module.exports = router;
 
 ////// 4
+router.post('/:id/members', protect, addMemberByEmail);
+router.delete('/:id/members/:memberId', protect, removeMember);
 
