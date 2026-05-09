@@ -32,7 +32,14 @@ const taskSchema = new mongoose.Schema(
       },
       default: "à faire"
     },
+    // tache 4 ******************************************************
 
+    assignedTo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null
+    },
+    ///////////****************************************************** */
     project: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Project",

@@ -212,11 +212,33 @@ const updateTaskStatus = async (req, res) => {
   }
 };
 
+///////////////////////////////
+const getMyTasks = async (req, res) => {
+  try {
+    const { status, priority } = req.query;
+    
+    const filter = { assignedTo: req.user._id };
+    if (status) filter.status = status;
+    if (priority) filter.priority = priority;
+
+    const tasks = await Task.find(filter)
+      .populate("project", "title")
+      .populate("assignedTo", "name email")
+      .sort({ createdAt: -1 });
+
+    res.json(tasks);
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
+};
+////////////////////////////////
+
 module.exports = {
   getTasksByProject,
   createTask,
   getTaskById,
   updateTask,
   deleteTask,
-  updateTaskStatus
+  updateTaskStatus,
+  getMyTasks
 };
