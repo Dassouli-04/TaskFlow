@@ -32,7 +32,12 @@ const projectSchema = new mongoose.Schema(
       ref: "User",
       required: true
     },
-
+    //////////////////////  tache 4  ///////////////////
+    members: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }], 
+    ////////////////////////////////////////////
     members: [
       {
         type: mongoose.Schema.Types.ObjectId,

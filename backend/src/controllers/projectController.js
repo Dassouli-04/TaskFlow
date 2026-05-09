@@ -180,11 +180,43 @@ const deleteProject = async (req, res) => {
     });
   }
 };
+// 4 
 
+// GET /api/projects/:id/members
+const getProjectMembers = async (req, res) => {
+  try {
+    const project = await Project.findById(req.params.id)
+      .populate('members', 'name email')
+      .populate('owner', 'name email');
+    
+    if (!project) {
+      return res.status(404).json({ message: "Projet non trouvé" });
+    }
+    
+    // Vérifier que l'utilisateur est membre ou owner
+    const isMember = project.members.some(m => m._id.toString() === req.user._id.toString());
+    const isOwner = project.owner._id.toString() === req.user._id.toString();
+    
+    if (!isMember && !isOwner) {
+      return res.status(403).json({ message: "Accès non autorisé" });
+    }
+    
+    res.json({
+      owner: project.owner,
+      members: project.members
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
+};
+/////
 module.exports = {
   createProject,
   getProjects,
   getProjectById,
   updateProject,
-  deleteProject
+  deleteProject,
+  getProjectMembers
 };
+
+
