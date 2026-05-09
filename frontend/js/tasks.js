@@ -34,7 +34,40 @@ const loadProjectTitle = async () => {
     projectTitle.textContent = "Tâches du projet";
   }
 };
-
+// ********************************
+// tache 4
+// Load membres dyal projet
+const loadMembers = async () => {
+  try {
+    const res = await api.get(`/projects/${projectId}/members`);
+    const members = res.data.members || [];
+    const owner = res.data.owner;
+    
+    const select = document.getElementById("taskAssignedTo");
+    if (!select) return;
+    
+    select.innerHTML = '<option value="">Non assigné</option>';
+    
+    // Ajouter owner (créateur)
+    if (owner) {
+      const option = document.createElement("option");
+      option.value = owner._id;
+      option.textContent = `${owner.name} (Créateur)`;
+      select.appendChild(option);
+    }
+    
+    // Ajouter les autres membres
+    members.forEach(member => {
+      const option = document.createElement("option");
+      option.value = member._id;
+      option.textContent = `${member.name} (${member.email})`;
+      select.appendChild(option);
+    });
+  } catch (error) {
+    console.error("Erreur chargement membres:", error);
+  }
+};
+///////
 // Charger les tâches du projet
 const loadTasks = async () => {
   try {
