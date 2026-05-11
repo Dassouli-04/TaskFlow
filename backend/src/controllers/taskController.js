@@ -97,7 +97,15 @@ const createTask = async (req, res) => {
         message: "Accès refusé à ce projet"
       });
     }
+if (assignedTo) {
+  const canAssignUser = canBeAssignedToProject(projectDoc, assignedTo);
 
+  if (!canAssignUser) {
+    return res.status(400).json({
+      message: "L'utilisateur assigné doit être le créateur ou un membre du projet"
+    });
+  }
+}
     const task = await Task.create({
       title,
       description: description || "",
@@ -214,8 +222,19 @@ const updateTask = async (req, res) => {
     }
 
     if (assignedTo !== undefined) {
-      task.assignedTo = assignedTo || null;
+  if (assignedTo) {
+    const canAssignUser = canBeAssignedToProject(project, assignedTo);
+
+    if (!canAssignUser) {
+      return res.status(400).json({
+        message: "L'utilisateur assigné doit être le créateur ou un membre du projet"
+      });
     }
+  }
+
+  task.assignedTo = assignedTo || null;
+}
+
 
     if (deadline !== undefined) {
       task.deadline = deadline || null;
@@ -330,12 +349,47 @@ const updateTaskStatus = async (req, res) => {
     });
   }
 };
+const getMyAssignedTasks = async (req, res) => {
+  try {
+    const { projectId, status, priority } = req.query;
+
+    const filter = {
+      assignedTo: req.user._id
+    };
+
+    if (projectId) {
+      filter.project = projectId;
+    }
+
+    if (status) {
+      filter.status = status;
+    }
+
+    if (priority) {
+      filter.priority = priority;
+    }
+
+    const tasks = await Task.find(filter)
+      .populate("project", "title status deadline")
+      .populate("assignedTo", "fullName email")
+      .sort({ createdAt: -1 });
+
+    return res.json({
+      data: tasks
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Erreur serveur"
+    });
+  }
+};
 
 module.exports = {
   getTasksByProject,
   createTask,
-  getTaskById,
+  getTaskById, 
   updateTask,
   deleteTask,
-  updateTaskStatus
+  updateTaskStatus,
+  getMyAssignedTasks 
 };
