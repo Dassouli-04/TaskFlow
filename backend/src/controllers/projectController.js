@@ -182,11 +182,45 @@ const deleteProject = async (req, res) => {
     });
   }
 };
+const getProjectMembers = async (req, res) => {
+  try {
+    const project = await Project.findById(req.params.id)
+      .populate("owner", "fullName email")
+      .populate("members", "fullName email");
 
+    if (!project) {
+      return res.status(404).json({
+        message: "Projet introuvable"
+      });
+    }
+
+    const isOwner = project.owner._id.toString() === req.user._id.toString();
+
+    const isMember = project.members.some(
+      (member) => member._id.toString() === req.user._id.toString()
+    );
+
+    if (!isOwner && !isMember) {
+      return res.status(403).json({
+        message: "Accès refusé"
+      });
+    }
+
+    return res.json({
+      owner: project.owner,
+      members: project.members
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Erreur serveur"
+    });
+  }
+};
 module.exports = {
   createProject,
   getProjects,
   getProjectById,
   updateProject,
-  deleteProject
+  deleteProject,
+getProjectMembers 
 };
