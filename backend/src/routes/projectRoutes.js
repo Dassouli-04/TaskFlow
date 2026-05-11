@@ -7,8 +7,10 @@ const {
   getProjects,
   getProjectById,
   updateProject,
-  deleteProject
+  deleteProject,
+ getProjectMembers
 } = require("../controllers/projectController");
+
 
 const router = express.Router();
 
@@ -17,7 +19,7 @@ router.route("/")
   .post(protect, createProject);
 
 router.get("/:id/tasks", protect, getTasksByProject);
-
+router.get("/:id/members", protect, getProjectMembers);
 router.route("/:id")
   .get(protect, getProjectById)
   .put(protect, updateProject)

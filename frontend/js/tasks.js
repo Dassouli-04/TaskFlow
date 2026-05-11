@@ -9,7 +9,7 @@ const submitTaskBtn = document.getElementById("submitTaskBtn");
 const taskMessage = document.getElementById("taskMessage");
 const tasksList = document.getElementById("tasksList");
 const projectTitle = document.getElementById("projectTitle");
-
+const assignedToInput = document.getElementById("assignedTo");
 const params = new URLSearchParams(window.location.search);
 const projectId = params.get("projectId");
 
@@ -32,6 +32,7 @@ const resetTaskForm = () => {
   descriptionInput.value = "";
   priorityInput.value = "";
   statusInput.value = "à faire";
+  assignedToInput.value = "";
   deadlineInput.value = "";
   submitTaskBtn.textContent = "Create task";
 };
@@ -89,7 +90,7 @@ const editTask = async (id) => {
     descriptionInput.value = task.description || "";
     priorityInput.value = task.priority;
     statusInput.value = task.status;
-
+    assignedToInput.value = task.assignedTo ? task.assignedTo._id : "";
     if (task.deadline) {
       deadlineInput.value = task.deadline.substring(0, 10);
     } else {
@@ -144,6 +145,7 @@ if (taskForm) {
       priority: priorityInput.value,
       status: statusInput.value,
       project: projectId,
+      assignedTo: assignedToInput.value || null,
       deadline: deadlineInput.value || null
     };
 
@@ -167,5 +169,35 @@ if (taskForm) {
   });
 }
 
+
+const loadMembers = async () => {
+  try {
+    const response = await api.get(`/projects/${projectId}/members`);
+
+    const owner = response.data.owner;
+    const members = response.data.members || [];
+
+    assignedToInput.innerHTML = `<option value="">Non assigné</option>`;
+
+    if (owner) {
+      const option = document.createElement("option");
+      option.value = owner._id;
+      option.textContent = `${owner.fullName} (${owner.email}) - Créateur`;
+      assignedToInput.appendChild(option);
+    }
+
+    members.forEach((member) => {
+      const option = document.createElement("option");
+      option.value = member._id;
+      option.textContent = `${member.fullName} (${member.email})`;
+      assignedToInput.appendChild(option);
+    });
+  } catch (error) {
+    console.error("Erreur chargement membres:", error);
+  }
+};
+
+
 loadProject();
+loadMembers();
 loadTasks();
