@@ -1,5 +1,6 @@
 const express = require("express");
 const protect = require("../middleware/authMiddleware");
+const { getTasksByProject } = require("../controllers/taskController");
 
 const {
   createProject,
@@ -14,6 +15,8 @@ const router = express.Router();
 router.route("/")
   .get(protect, getProjects)
   .post(protect, createProject);
+
+router.get("/:id/tasks", protect, getTasksByProject);
 
 router.route("/:id")
   .get(protect, getProjectById)

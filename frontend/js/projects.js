@@ -66,7 +66,19 @@ const loadProjects = async () => {
             Delete
           </button>
         </div>
+<div class="project-actions">
+  <a href="tasks.html?projectId=${project._id}">View tasks</a>
+
+  <button onclick="editProject('${project._id}', '${escapeText(project.title)}', '${escapeText(project.description)}', '${project.deadline || ""}', '${project.status}')">
+    Edit
+  </button>
+
+  <button onclick="deleteProject('${project._id}')">
+    Delete
+  </button>
+</div>
       </div>
+
     `).join("");
   } catch (error) {
     projectsList.innerHTML = "<p>Could not load projects.</p>";

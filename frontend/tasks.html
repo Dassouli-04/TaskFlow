@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TaskFlow - Tasks</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <h2>TaskFlow</h2>
+    <div>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="projects.html">Projects</a>
+      <button id="logoutBtn">Logout</button>
+    </div>
+  </nav>
+
+  <main class="container">
+    <h1 id="projectTitle">Project Tasks</h1>
+
+    <section class="card">
+      <h2>Create / Edit task</h2>
+
+      <form id="taskForm">
+        <input type="hidden" id="taskId">
+
+        <input type="text" id="title" placeholder="Task title" required>
+
+        <textarea id="description" placeholder="Task description"></textarea>
+
+        <select id="priority" required>
+          <option value="">Select priority</option>
+          <option value="basse">Basse</option>
+          <option value="moyenne">Moyenne</option>
+          <option value="haute">Haute</option>
+        </select>
+
+        <select id="status">
+          <option value="à faire">À faire</option>
+          <option value="en cours">En cours</option>
+          <option value="terminé">Terminé</option>
+        </select>
+
+        <input type="date" id="deadline">
+
+        <button type="submit" id="submitTaskBtn">Create task</button>
+      </form>
+
+      <p id="taskMessage"></p>
+    </section>
+
+    <section class="card">
+      <h2>Tasks list</h2>
+      <div id="tasksList"></div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/tasks.js"></script>
+</body>
+</html>
