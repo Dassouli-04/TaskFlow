@@ -289,6 +289,15 @@ if (nextTasksPageBtn) {
   });
 }
 
+if (searchInput) {
+  searchInput.addEventListener("keydown", async (event) => {
+    if (event.key === "Enter") {
+      currentTasksPage = 1;
+      await loadTasks();
+    }
+  });
+}
+
 loadProject();
 loadMembers();
 loadTasks();
