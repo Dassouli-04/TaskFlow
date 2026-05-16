@@ -110,3 +110,21 @@ select {
   margin-right: 15px;
   text-decoration: none;
 }
+
+.filters {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.filters input,
+.filters select,
+.filters button {
+  width: 100%;
+}
+
+@media (max-width: 800px) {
+  .filters {
+    grid-template-columns: 1fr;
+  }
+}
