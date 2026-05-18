@@ -1,6 +1,125 @@
 const Project = require("../models/Project");
-
+const User = require("../models/User");
 const allowedStatuses = ["actif", "en pause", "archivé"];
+
+const isProjectOwner = (project, userId) => {
+  return project.owner.toString() === userId.toString();
+};
+
+const removeMember = async (req, res) => {
+  try {
+    const { memberId } = req.params;
+
+    const project = await Project.findById(req.params.id);
+
+    if (!project) {
+      return res.status(404).json({
+        message: "Projet introuvable"
+      });
+    }
+
+    if (!isProjectOwner(project, req.user._id)) {
+      return res.status(403).json({
+        message: "Seul le créateur du projet peut retirer des membres"
+      });
+    }
+
+    const isMember = project.members.some(
+      (id) => id.toString() === memberId.toString()
+    );
+
+    if (!isMember) {
+      return res.status(404).json({
+        message: "Ce membre n'existe pas dans ce projet"
+      });
+    }
+
+    project.members = project.members.filter(
+      (id) => id.toString() !== memberId.toString()
+    );
+
+    await project.save();
+
+    await project.populate("owner", "fullName email");
+    await project.populate("members", "fullName email");
+
+    return res.json({
+      message: "Membre retiré avec succès",
+      project
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Erreur serveur"
+    });
+  }
+};
+
+const inviteMember = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        message: "L'email du membre est obligatoire"
+      });
+    }
+
+    const project = await Project.findById(req.params.id);
+
+    if (!project) {
+      return res.status(404).json({
+        message: "Projet introuvable"
+      });
+    }
+
+    if (!isProjectOwner(project, req.user._id)) {
+      return res.status(403).json({
+        message: "Seul le créateur du projet peut inviter des membres"
+      });
+    }
+
+    const userToInvite = await User.findOne({
+      email: email.toLowerCase().trim()
+    }).select("-password");
+
+    if (!userToInvite) {
+      return res.status(404).json({
+        message: "Aucun utilisateur trouvé avec cet email"
+      });
+    }
+
+    if (userToInvite._id.toString() === project.owner.toString()) {
+      return res.status(400).json({
+        message: "Le créateur du projet est déjà membre du projet"
+      });
+    }
+
+    const alreadyMember = project.members.some(
+      (memberId) => memberId.toString() === userToInvite._id.toString()
+    );
+
+    if (alreadyMember) {
+      return res.status(409).json({
+        message: "Cet utilisateur est déjà membre du projet"
+      });
+    }
+
+    project.members.push(userToInvite._id);
+    await project.save();
+
+    await project.populate("owner", "fullName email");
+    await project.populate("members", "fullName email");
+
+    return res.status(200).json({
+      message: "Membre ajouté avec succès",
+      project
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Erreur serveur"
+    });
+  }
+};
 
 const createProject = async (req, res) => {
   try {
@@ -216,11 +335,14 @@ const getProjectMembers = async (req, res) => {
     });
   }
 };
+
 module.exports = {
   createProject,
   getProjects,
   getProjectById,
   updateProject,
   deleteProject,
-getProjectMembers 
+  getProjectMembers,
+  inviteMember,
+  removeMember
 };
