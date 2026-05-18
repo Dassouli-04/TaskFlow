@@ -8,9 +8,10 @@ const {
   getProjectById,
   updateProject,
   deleteProject,
- getProjectMembers
+  getProjectMembers,
+  inviteMember,
+  removeMember
 } = require("../controllers/projectController");
-
 
 const router = express.Router();
 
@@ -20,6 +21,8 @@ router.route("/")
 
 router.get("/:id/tasks", protect, getTasksByProject);
 router.get("/:id/members", protect, getProjectMembers);
+router.post("/:id/members", protect, inviteMember);
+router.delete("/:id/members/:memberId", protect, removeMember);
 router.route("/:id")
   .get(protect, getProjectById)
   .put(protect, updateProject)
