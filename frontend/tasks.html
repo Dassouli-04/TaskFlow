@@ -91,7 +91,19 @@
     <button id="nextTasksPageBtn">Next</button>
   </div>
 </section>
-  </main>
+  <section class="card">
+  <h2>Project members</h2>
+
+  <form id="inviteMemberForm">
+    <input type="email" id="memberEmail" placeholder="Member email" required>
+    <button type="submit">Invite member</button>
+  </form>
+
+  <p id="memberMessage"></p>
+
+  <div id="membersList"></div>
+</section>
+</main>
 
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script src="js/api.js"></script>

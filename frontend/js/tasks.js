@@ -26,6 +26,11 @@ const assignedToInput = document.getElementById("assignedTo");
 const params = new URLSearchParams(window.location.search);
 const projectId = params.get("projectId");
 const draftKey = `taskDraft-${projectId}`;
+const inviteMemberForm = document.getElementById("inviteMemberForm");
+const memberEmailInput = document.getElementById("memberEmail");
+const memberMessage = document.getElementById("memberMessage");
+const membersList = document.getElementById("membersList");
+
 
 if (!projectId) {
   alert("Project ID is missing");
@@ -46,7 +51,9 @@ const resetTaskForm = () => {
   descriptionInput.value = "";
   priorityInput.value = "";
   statusInput.value = "à faire";
-  assignedToInput.value = "";
+  if (assignedToInput) {
+    assignedToInput.value = "";
+  }
   deadlineInput.value = "";
   submitTaskBtn.textContent = "Create task";
 };
@@ -224,36 +231,117 @@ const loadMembers = async () => {
     const owner = response.data.owner;
     const members = response.data.members || [];
 
-    assignedToInput.innerHTML = `<option value="">Non assigné</option>`;
-    filterAssignedTo.innerHTML = `<option value="">All members</option>`;
+    if (assignedToInput) {
+      assignedToInput.innerHTML = `<option value="">Non assigné</option>`;
+    }
+
+    if (filterAssignedTo) {
+      filterAssignedTo.innerHTML = `<option value="">All members</option>`;
+    }
+
+    if (membersList) {
+      membersList.innerHTML = "";
+    }
 
     if (owner) {
-      const assignOption = document.createElement("option");
-      assignOption.value = owner._id;
-      assignOption.textContent = `${owner.fullName} (${owner.email}) - Créateur`;
-      assignedToInput.appendChild(assignOption);
+      if (assignedToInput) {
+        const assignOption = document.createElement("option");
+        assignOption.value = owner._id;
+        assignOption.textContent = `${owner.fullName} (${owner.email}) - Créateur`;
+        assignedToInput.appendChild(assignOption);
+      }
 
-      const filterOption = document.createElement("option");
-      filterOption.value = owner._id;
-      filterOption.textContent = `${owner.fullName} (${owner.email}) - Créateur`;
-      filterAssignedTo.appendChild(filterOption);
+      if (filterAssignedTo) {
+        const filterOption = document.createElement("option");
+        filterOption.value = owner._id;
+        filterOption.textContent = `${owner.fullName} (${owner.email}) - Créateur`;
+        filterAssignedTo.appendChild(filterOption);
+      }
+
+      if (membersList) {
+        membersList.innerHTML += `
+          <div class="project-item">
+            <p><strong>${owner.fullName}</strong> (${owner.email})</p>
+            <p>Créateur du projet</p>
+          </div>
+        `;
+      }
     }
 
     members.forEach((member) => {
-      const assignOption = document.createElement("option");
-      assignOption.value = member._id;
-      assignOption.textContent = `${member.fullName} (${member.email})`;
-      assignedToInput.appendChild(assignOption);
+      if (assignedToInput) {
+        const assignOption = document.createElement("option");
+        assignOption.value = member._id;
+        assignOption.textContent = `${member.fullName} (${member.email})`;
+        assignedToInput.appendChild(assignOption);
+      }
 
-      const filterOption = document.createElement("option");
-      filterOption.value = member._id;
-      filterOption.textContent = `${member.fullName} (${member.email})`;
-      filterAssignedTo.appendChild(filterOption);
+      if (filterAssignedTo) {
+        const filterOption = document.createElement("option");
+        filterOption.value = member._id;
+        filterOption.textContent = `${member.fullName} (${member.email})`;
+        filterAssignedTo.appendChild(filterOption);
+      }
+
+      if (membersList) {
+        membersList.innerHTML += `
+          <div class="project-item">
+            <p><strong>${member.fullName}</strong> (${member.email})</p>
+
+            <button onclick="removeMember('${member._id}')">
+              Remove
+            </button>
+          </div>
+        `;
+      }
     });
   } catch (error) {
     console.error("Erreur chargement membres:", error);
   }
 };
+
+
+if (inviteMemberForm) {
+  inviteMemberForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    try {
+      await api.post(`/projects/${projectId}/members`, {
+        email: memberEmailInput.value
+      });
+
+      memberMessage.textContent = "Membre ajouté avec succès";
+      memberEmailInput.value = "";
+
+      await loadMembers();
+      await loadTasks();
+    } catch (error) {
+      memberMessage.textContent =
+        error.response?.data?.message || "Impossible d'ajouter ce membre";
+    }
+  });
+}
+
+const removeMember = async (memberId) => {
+  const confirmed = confirm("Voulez-vous vraiment retirer ce membre du projet ?");
+
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    await api.delete(`/projects/${projectId}/members/${memberId}`);
+
+    memberMessage.textContent = "Membre retiré avec succès";
+
+    await loadMembers();
+    await loadTasks();
+  } catch (error) {
+    memberMessage.textContent =
+      error.response?.data?.message || "Impossible de retirer ce membre";
+  }
+};
+
 
 if (applyFiltersBtn) {
   applyFiltersBtn.addEventListener("click", async () => {
@@ -315,7 +403,7 @@ const getTaskFormData = () => {
 const fillTaskForm = (data) => {
   titleInput.value = data.title || "";
   descriptionInput.value = data.description || "";
-  priorityInput.value = data.priority || "moyenne";
+  priorityInput.value = data.priority || "";
   statusInput.value = data.status || "à faire";
   deadlineInput.value = data.deadline || "";
 
@@ -333,7 +421,7 @@ const saveTaskDraft = () => {
   }
 
   
-const draftData = getTaskFormData();
+  const draftData = getTaskFormData();
 
   const hasContent =
     draftData.title ||
@@ -397,8 +485,13 @@ const restoreTaskDraft = () => {
 };
 
 
-loadProject();
-loadMembers();
-loadTasks();
-enableDraftAutoSave();
-restoreTaskDraft();
+const initTasksPage = async () => {
+  await loadProject();
+  await loadMembers();
+  await loadTasks();
+
+  enableDraftAutoSave();
+  restoreTaskDraft();
+};
+
+initTasksPage();
