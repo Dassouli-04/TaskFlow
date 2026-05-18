@@ -128,6 +128,7 @@ const loadTasks = async () => {
 
 const editTask = async (id) => {
   try {
+    localStorage.removeItem(draftKey);
     const response = await api.get(`/tasks/${id}`);
     const task = response.data.task;
 
@@ -204,6 +205,7 @@ if (taskForm) {
       } else {
         await api.post("/tasks", taskData);
         taskMessage.textContent = "Task created successfully";
+        localStorage.removeItem(draftKey);
       }
 
       resetTaskForm();
