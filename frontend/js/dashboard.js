@@ -57,7 +57,7 @@ const loadDashboard = async () => {
 
 const updateTaskStatusFromDashboard = async (taskId, status) => {
   try {
-    await api.patch(/tasks/$,{taskId}/status, {
+    await api.patch(/tasks/${taskId}/status, {
       status
     });
 
