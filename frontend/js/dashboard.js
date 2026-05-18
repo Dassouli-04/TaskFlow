@@ -1,4 +1,8 @@
-const assignedTasksList = document.getElementById("assignedTasksList");
+const activeProjectsCount = document.getElementById("activeProjectsCount");
+const assignedTasksCount = document.getElementById("assignedTasksCount");
+const completedTasksCount = document.getElementById("completedTasksCount");
+const lateTasksCount = document.getElementById("lateTasksCount");
+const currentTasksList = document.getElementById("currentTasksList");
 
 const formatDate = (dateValue) => {
   if (!dateValue) {
@@ -8,55 +12,59 @@ const formatDate = (dateValue) => {
   return new Date(dateValue).toLocaleDateString();
 };
 
-const loadAssignedTasks = async () => {
-  if (!assignedTasksList) {
-    return;
-  }
-
+const loadDashboard = async () => {
   try {
-    const response = await api.get("/tasks/my/assigned");
+    const response = await api.get("/dashboard");
 
-    const tasks = response.data.data || [];
+    const data = response.data;
+
+    activeProjectsCount.textContent = data.activeProjectsCount;
+    assignedTasksCount.textContent = data.assignedTasksCount;
+    completedTasksCount.textContent = data.completedTasksCount;
+    lateTasksCount.textContent = data.lateTasksCount;
+
+    const tasks = data.currentTasks || [];
 
     if (!tasks.length) {
-      assignedTasksList.innerHTML = "<p>No assigned tasks.</p>";
+      currentTasksList.innerHTML = "<p>No current tasks.</p>";
       return;
     }
 
-    assignedTasksList.innerHTML = tasks.map((task) => `
+    currentTasksList.innerHTML = tasks.map((task) => `
       <div class="project-item">
         <h3>${task.title}</h3>
         <p>${task.description || ""}</p>
-        <p><strong>Project:</strong> ${task.project?.title || "Unknown"}</p>
+        <p><strong>Project:</strong> ${task.project?.title || "Unknown project"}</p>
         <p><strong>Priority:</strong> ${task.priority}</p>
         <p><strong>Status:</strong> ${task.status}</p>
         <p><strong>Deadline:</strong> ${formatDate(task.deadline)}</p>
 
         <div class="project-actions">
-          <button onclick="updateAssignedTaskStatus('${task._id}', 'en cours')">
+          <button onclick="updateTaskStatusFromDashboard('${task._id}', 'en cours')">
             Start
           </button>
-          <button onclick="updateAssignedTaskStatus('${task._id}', 'terminé')">
+
+          <button onclick="updateTaskStatusFromDashboard('${task._id}', 'terminé')">
             Finish
           </button>
         </div>
       </div>
     `).join("");
   } catch (error) {
-    assignedTasksList.innerHTML = "<p>Could not load assigned tasks.</p>";
+    currentTasksList.innerHTML = "<p>Could not load dashboard.</p>";
   }
 };
 
-const updateAssignedTaskStatus = async (taskId, status) => {
+const updateTaskStatusFromDashboard = async (taskId, status) => {
   try {
-    await api.patch(`/tasks/${taskId}/status`, {
+    await api.patch(/tasks/${taskId}/status, {
       status
     });
 
-    await loadAssignedTasks();
+    await loadDashboard();
   } catch (error) {
     alert(error.response?.data?.message || "Could not update task status");
   }
 };
 
-loadAssignedTasks();
+loadDashboard();
