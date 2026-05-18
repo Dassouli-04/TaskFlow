@@ -25,6 +25,7 @@ const projectTitle = document.getElementById("projectTitle");
 const assignedToInput = document.getElementById("assignedTo");
 const params = new URLSearchParams(window.location.search);
 const projectId = params.get("projectId");
+const draftKey = `taskDraft-${projectId}`;
 
 if (!projectId) {
   alert("Project ID is missing");
@@ -298,6 +299,105 @@ if (searchInput) {
   });
 }
 
+const getTaskFormData = () => {
+  return {
+    title: titleInput.value,
+    description: descriptionInput.value,
+    priority: priorityInput.value,
+    status: statusInput.value,
+    assignedTo: assignedToInput ? assignedToInput.value : "",
+    deadline: deadlineInput.value
+  };
+};
+
+
+const fillTaskForm = (data) => {
+  titleInput.value = data.title || "";
+  descriptionInput.value = data.description || "";
+  priorityInput.value = data.priority || "";
+  statusInput.value = data.status || "à faire";
+  deadlineInput.value = data.deadline || "";
+
+  if (assignedToInput && data.assignedTo !== undefined) {
+    assignedToInput.value = data.assignedTo || "";
+  }
+};
+
+
+const saveTaskDraft = () => {
+  const taskId = taskIdInput.value;
+
+  if (taskId) {
+    return;
+  }
+
+  
+const draftData = getTaskFormData();
+
+  const hasContent =
+    draftData.title ||
+    draftData.description ||
+    draftData.priority ||
+    draftData.status !== "à faire" ||
+    draftData.assignedTo ||
+    draftData.deadline;
+
+  if (!hasContent) {
+    localStorage.removeItem(draftKey);
+    return;
+  }
+
+  localStorage.setItem(draftKey, JSON.stringify(draftData));
+};
+
+
+const enableDraftAutoSave = () => {
+  const fields = [
+    titleInput,
+    descriptionInput,
+    priorityInput,
+    statusInput,
+    deadlineInput
+  ];
+
+  if (assignedToInput) {
+    fields.push(assignedToInput);
+  }
+
+  fields.forEach((field) => {
+    field.addEventListener("input", saveTaskDraft);
+    field.addEventListener("change", saveTaskDraft);
+  });
+};
+
+
+const restoreTaskDraft = () => {
+  const savedDraft = localStorage.getItem(draftKey);
+
+  if (!savedDraft) {
+    return;
+  }
+
+  const shouldRestore = confirm(
+    "Un brouillon de tâche existe pour ce projet. Voulez-vous le restaurer ?"
+  );
+
+  if (!shouldRestore) {
+    localStorage.removeItem(draftKey);
+    return;
+  }
+
+  try {
+    const draftData = JSON.parse(savedDraft);
+    fillTaskForm(draftData);
+  } catch (error) {
+    localStorage.removeItem(draftKey);
+  }
+};
+
+
 loadProject();
 loadMembers();
 loadTasks();
+enableDraftAutoSave();
+restoreTaskDraft();
