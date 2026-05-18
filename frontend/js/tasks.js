@@ -1,3 +1,16 @@
+const filterStatus = document.getElementById("filterStatus");
+const filterPriority = document.getElementById("filterPriority");
+const filterAssignedTo = document.getElementById("filterAssignedTo");
+const searchInput = document.getElementById("searchInput");
+const applyFiltersBtn = document.getElementById("applyFiltersBtn");
+const resetFiltersBtn = document.getElementById("resetFiltersBtn");
+const prevTasksPageBtn = document.getElementById("prevTasksPageBtn");
+const nextTasksPageBtn = document.getElementById("nextTasksPageBtn");
+const tasksPageInfo = document.getElementById("tasksPageInfo");
+
+let currentTasksPage = 1;
+const tasksLimit = 5;
+let tasksTotalPages = 1;
 const taskForm = document.getElementById("taskForm");
 const taskIdInput = document.getElementById("taskId");
 const titleInput = document.getElementById("title");
@@ -48,8 +61,40 @@ const loadProject = async () => {
 
 const loadTasks = async () => {
   try {
-    const response = await api.get(`/projects/${projectId}/tasks`);
-    const tasks = response.data;
+    const params = new URLSearchParams();
+
+    params.append("page", currentTasksPage);
+    params.append("limit", tasksLimit);
+
+    if (filterStatus.value) {
+      params.append("status", filterStatus.value);
+    }
+
+    if (filterPriority.value) {
+      params.append("priority", filterPriority.value);
+    }
+
+    if (filterAssignedTo.value) {
+      params.append("assignedTo", filterAssignedTo.value);
+    }
+
+    if (searchInput.value.trim()) {
+      params.append("search", searchInput.value.trim());
+    }
+
+    const response = await api.get(
+      `/projects/${projectId}/tasks?${params.toString()}`
+    );
+
+    const tasks = response.data.data || [];
+
+    tasksTotalPages = response.data.totalPages || 1;
+    currentTasksPage = response.data.page || 1;
+
+    tasksPageInfo.textContent = `Page ${currentTasksPage} of ${tasksTotalPages}`;
+
+    prevTasksPageBtn.disabled = currentTasksPage <= 1;
+    nextTasksPageBtn.disabled = currentTasksPage >= tasksTotalPages;
 
     if (!tasks.length) {
       tasksList.innerHTML = "<p>No tasks found.</p>";
@@ -178,25 +223,80 @@ const loadMembers = async () => {
     const members = response.data.members || [];
 
     assignedToInput.innerHTML = `<option value="">Non assigné</option>`;
+    filterAssignedTo.innerHTML = `<option value="">All members</option>`;
 
     if (owner) {
-      const option = document.createElement("option");
-      option.value = owner._id;
-      option.textContent = `${owner.fullName} (${owner.email}) - Créateur`;
-      assignedToInput.appendChild(option);
+      const assignOption = document.createElement("option");
+      assignOption.value = owner._id;
+      assignOption.textContent = `${owner.fullName} (${owner.email}) - Créateur`;
+      assignedToInput.appendChild(assignOption);
+
+      const filterOption = document.createElement("option");
+      filterOption.value = owner._id;
+      filterOption.textContent = `${owner.fullName} (${owner.email}) - Créateur`;
+      filterAssignedTo.appendChild(filterOption);
     }
 
     members.forEach((member) => {
-      const option = document.createElement("option");
-      option.value = member._id;
-      option.textContent = `${member.fullName} (${member.email})`;
-      assignedToInput.appendChild(option);
+      const assignOption = document.createElement("option");
+      assignOption.value = member._id;
+      assignOption.textContent = `${member.fullName} (${member.email})`;
+      assignedToInput.appendChild(assignOption);
+
+      const filterOption = document.createElement("option");
+      filterOption.value = member._id;
+      filterOption.textContent = `${member.fullName} (${member.email})`;
+      filterAssignedTo.appendChild(filterOption);
     });
   } catch (error) {
     console.error("Erreur chargement membres:", error);
   }
 };
 
+if (applyFiltersBtn) {
+  applyFiltersBtn.addEventListener("click", async () => {
+    currentTasksPage = 1;
+    await loadTasks();
+  });
+}
+
+if (resetFiltersBtn) {
+  resetFiltersBtn.addEventListener("click", async () => {
+    filterStatus.value = "";
+    filterPriority.value = "";
+    filterAssignedTo.value = "";
+    searchInput.value = "";
+    currentTasksPage = 1;
+    await loadTasks();
+  });
+}
+
+if (prevTasksPageBtn) {
+  prevTasksPageBtn.addEventListener("click", async () => {
+    if (currentTasksPage > 1) {
+      currentTasksPage--;
+      await loadTasks();
+    }
+  });
+}
+
+if (nextTasksPageBtn) {
+  nextTasksPageBtn.addEventListener("click", async () => {
+    if (currentTasksPage < tasksTotalPages) {
+      currentTasksPage++;
+      await loadTasks();
+    }
+  });
+}
+
+if (searchInput) {
+  searchInput.addEventListener("keydown", async (event) => {
+    if (event.key === "Enter") {
+      currentTasksPage = 1;
+      await loadTasks();
+    }
+  });
+}
 
 loadProject();
 loadMembers();

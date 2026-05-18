@@ -46,11 +46,68 @@ const getTasksByProject = async (req, res) => {
       });
     }
 
-    const tasks = await Task.find({ project: req.params.id })
-      .populate("assignedTo", "fullName email")
-      .sort({ createdAt: -1 });
+    const {
+      status,
+      priority,
+      assignedTo,
+      search,
+      page = 1,
+      limit = 10
+    } = req.query;
 
-    return res.json(tasks);
+    const currentPage = Math.max(Number(page) || 1, 1);
+    const perPage = Math.min(Math.max(Number(limit) || 10, 1), 50);
+    const skip = (currentPage - 1) * perPage;
+
+    const filter = {
+      project: req.params.id
+    };
+
+    if (status) {
+      filter.status = status;
+    }
+
+    if (priority) {
+      filter.priority = priority;
+    }
+
+    if (assignedTo) {
+      filter.assignedTo = assignedTo;
+    }
+
+    if (search) {
+      filter.$or = [
+        {
+          title: {
+            $regex: search,
+            $options: "i"
+          }
+        },
+        {
+          description: {
+            $regex: search,
+            $options: "i"
+          }
+        }
+      ];
+    }
+
+    const [tasks, total] = await Promise.all([
+      Task.find(filter)
+        .populate("assignedTo", "fullName email")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(perPage),
+
+      Task.countDocuments(filter)
+    ]);
+
+    return res.json({
+      data: tasks,
+      total,
+      page: currentPage,
+      totalPages: Math.ceil(total / perPage) || 1
+    });
   } catch (error) {
     return res.status(500).json({
       message: "Erreur serveur"

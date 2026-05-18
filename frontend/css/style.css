@@ -111,6 +111,18 @@ select {
   text-decoration: none;
 }
 
+.filters {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.filters input,
+.filters select,
+.filters button {
+  width: 100%;
+}
+
 .dashboard-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -131,6 +143,12 @@ select {
 @media (max-width: 900px) {
   .dashboard-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 800px) {
+  .filters {
+    grid-template-columns: 1fr;
   }
 }
 

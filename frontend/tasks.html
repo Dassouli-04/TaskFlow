@@ -51,10 +51,46 @@
       <p id="taskMessage"></p>
     </section>
 
-    <section class="card">
-      <h2>Tasks list</h2>
-      <div id="tasksList"></div>
-    </section>
+<section class="card">
+  <h2>Filter tasks</h2>
+
+  <div class="filters">
+    <select id="filterStatus">
+      <option value="">All statuses</option>
+      <option value="à faire">À faire</option>
+      <option value="en cours">En cours</option>
+      <option value="terminé">Terminé</option>
+    </select>
+
+    <select id="filterPriority">
+      <option value="">All priorities</option>
+      <option value="basse">Basse</option>
+      <option value="moyenne">Moyenne</option>
+      <option value="haute">Haute</option>
+    </select>
+
+    <select id="filterAssignedTo">
+      <option value="">All members</option>
+    </select>
+
+    <input type="text" id="searchInput" placeholder="Search by title or description">
+
+    <button id="applyFiltersBtn">Apply filters</button>
+    <button id="resetFiltersBtn">Reset</button>
+  </div>
+</section>
+
+<section class="card">
+  <h2>Tasks list</h2>
+
+  <div id="tasksList"></div>
+
+  <div class="pagination">
+    <button id="prevTasksPageBtn">Previous</button>
+    <span id="tasksPageInfo"></span>
+    <button id="nextTasksPageBtn">Next</button>
+  </div>
+</section>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
