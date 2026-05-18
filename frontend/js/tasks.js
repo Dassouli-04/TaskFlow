@@ -130,7 +130,7 @@ const editTask = async (id) => {
   try {
     localStorage.removeItem(draftKey);
     const response = await api.get(`/tasks/${id}`);
-    const task = response.data.task;
+    const task = response.data.task || response.data;
 
     taskIdInput.value = task._id;
     titleInput.value = task.title;
@@ -205,9 +205,8 @@ if (taskForm) {
       } else {
         await api.post("/tasks", taskData);
         taskMessage.textContent = "Task created successfully";
-        localStorage.removeItem(draftKey);
       }
-
+      localStorage.removeItem(draftKey);
       resetTaskForm();
       await loadTasks();
     } catch (error) {
@@ -316,7 +315,7 @@ const getTaskFormData = () => {
 const fillTaskForm = (data) => {
   titleInput.value = data.title || "";
   descriptionInput.value = data.description || "";
-  priorityInput.value = data.priority || "";
+  priorityInput.value = data.priority || "moyenne";
   statusInput.value = data.status || "à faire";
   deadlineInput.value = data.deadline || "";
 
